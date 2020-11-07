@@ -1,3 +1,20 @@
+@font-face {
+  font-family: "Bittrip";
+  src: url('assets/fonts/bittrip-webfont.eot');
+  /* IE9 Compat Modes */
+  src: url('assets/fonts/bittrip-webfont.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+  url('assets/fonts/bittrip-webfont.woff2') format('woff2'), /* Super Modern Browsers */
+  url('assets/fonts/bittrip-webfont.woff') format('woff'), /* Pretty Modern Browsers */
+  url('assets/fonts/bittrip-webfont.ttf') format('truetype'), /* Safari, Android, iOS */
+  url('assets/fonts/bittrip-webfont.svg#svgFontName') format('svg');
+  /* Legacy iOS */
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -7,7 +24,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+* {
+  font-family: "Bittrip", sans-serif;
 }

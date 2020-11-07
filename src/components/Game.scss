@@ -1,0 +1,25 @@
+.Game {
+  width: 100%;
+  height: 100%;
+
+  .Canvas-container {
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    cursor: url(../assets/misc/ship_cursor.cur), auto;
+
+    canvas {
+      display: block;
+      pointer-events: none;
+    }
+  }
+}
+
+.Menu-Container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: rgba(0, 0, 0, .5);
+}
