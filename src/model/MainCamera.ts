@@ -53,7 +53,7 @@ class MainCamera extends Entity {
 
     this.add(this.perspectiveCamera)
 
-    gameEngine.entities.push(this)
+    gameEngine.additionalEntities.push(this)
     gameEngine.scene?.add(this)
   }
 

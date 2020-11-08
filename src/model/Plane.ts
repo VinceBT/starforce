@@ -3,11 +3,15 @@ import * as THREE from 'three'
 import { PLANE_HALF, PLANE_SIZE, PLANE_STEP } from './Constants'
 import Entity, { UpdateOptions } from './Entity'
 import GameEngine from './GameEngine'
+import Reloader from './Reloader'
+import Star from './Star'
 
 class Plane extends Entity {
   public invisiblePlane: THREE.Mesh
 
   public grid: THREE.LineSegments<THREE.Geometry>
+
+  private starReloader = new Reloader(200)
 
   constructor(gameEngine: GameEngine) {
     super(gameEngine)
@@ -24,10 +28,10 @@ class Plane extends Entity {
       new THREE.MeshBasicMaterial({
         color: 0xffffff,
         side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0,
       })
     )
+
+    this.invisiblePlane.visible = false
 
     this.add(this.invisiblePlane)
 
@@ -49,7 +53,11 @@ class Plane extends Entity {
 
     this.add(this.grid)
 
-    gameEngine.entities.push(this)
+    for (let i = 0; i <= 400; i++) {
+      new Star(this.gameEngine, { initial: true })
+    }
+
+    gameEngine.additionalEntities.push(this)
     gameEngine.scene?.add(this)
   }
 
@@ -62,6 +70,10 @@ class Plane extends Entity {
 
     this.position.add(velocity)
     this.position.z = this.position.z % PLANE_STEP
+
+    if (this.starReloader.tick(options.delta)) {
+      new Star(this.gameEngine, { initial: false })
+    }
 
     return true
   }

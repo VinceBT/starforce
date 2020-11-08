@@ -11,6 +11,8 @@ export type BulletOptions = {
 class Bullet extends Entity {
   private readonly options
 
+  private velocity = new THREE.Vector3()
+
   constructor(gameEngine: GameEngine, options: BulletOptions) {
     super(gameEngine)
 
@@ -32,17 +34,14 @@ class Bullet extends Entity {
 
     if (options.initialPosition) this.position.copy(options.initialPosition)
     if (options.initialRotation) this.rotation.copy(options.initialRotation)
+    if (options.initialVelocity) this.velocity.copy(options.initialVelocity)
 
-    gameEngine.entities.push(this)
+    gameEngine.additionalEntities.push(this)
     gameEngine.scene?.add(this)
   }
 
   update(options: UpdateOptions) {
-    if (this.options.initialVelocity) {
-      this.position.add(
-        this.options.initialVelocity.multiplyScalar(options.speed)
-      )
-    }
+    this.position.add(this.velocity.clone().multiplyScalar(options.speed))
 
     if (
       Math.abs(this.position.x) >= PLANE_HALF ||

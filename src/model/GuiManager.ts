@@ -100,6 +100,14 @@ export default class GuiManager implements Updatable {
       'Pixel Pass',
       this.gameEngine.pixelPass.uniforms
     ).add('pixelSize', 0, 30, 1)
+
+    const folderOutline = this.gui.addFolder('Outline')
+    folderOutline.open()
+
+    folderOutline.add(this.gameEngine.outlinePass, 'edgeStrength', 0, 50)
+    folderOutline.add(this.gameEngine.outlinePass, 'edgeGlow', 0, 50)
+    folderOutline.add(this.gameEngine.outlinePass, 'edgeThickness', 0, 50)
+    folderOutline.add(this.gameEngine.outlinePass, 'pulsePeriod', 0, 50)
   }
 
   addShader(shaderFolder: GUI, folderName: string, uniforms: any) {

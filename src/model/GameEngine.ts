@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import Stats from 'three/examples/jsm/libs/stats.module'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer'
+import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
 import { CopyShader } from 'three/examples/jsm/shaders/CopyShader'
@@ -25,7 +26,7 @@ import MainCamera from './MainCamera'
 import Plane from './Plane'
 import Ship from './Ship'
 
-const DEBUG_SHADERS = false
+const DEBUG_SHADERS = true
 
 class GameEngine {
   public domElement: HTMLDivElement
@@ -53,6 +54,8 @@ class GameEngine {
   public pixelPass: ShaderPass
 
   public crtPass: ShaderPass
+
+  public outlinePass: OutlinePass
 
   public copyPass: ShaderPass
 
@@ -120,6 +123,20 @@ class GameEngine {
     this.rgbPass.uniforms['angle'].value = Math.PI
     this.rgbPass.uniforms['amount'].value = 0.002
 
+    this.outlinePass = new OutlinePass(
+      new THREE.Vector2(...dimensions.toArray()),
+      this.scene,
+      this.camera.perspectiveCamera
+    )
+
+    this.outlinePass.edgeStrength = 5
+    this.outlinePass.edgeGlow = 0.1
+    this.outlinePass.edgeThickness = 0.5
+    this.outlinePass.pulsePeriod = 0
+    const color = 0xff2250
+    this.outlinePass.visibleEdgeColor.set(color)
+    this.outlinePass.hiddenEdgeColor.set(color)
+
     this.filmPass = new ShaderPass(FilmShader)
     this.filmPass.uniforms.grayscale.value = 0
     this.filmPass.uniforms.sCount.value = 800
@@ -143,7 +160,9 @@ class GameEngine {
     this.pixelPass.uniforms['pixelSize'].value = 2
 
     this.crtPass = new ShaderPass(CRTShader)
-    this.crtPass.uniforms['bulge'].value = 0.15
+    this.crtPass.uniforms['bulge'].value = 0.1
+    this.crtPass.uniforms['rgbAmount'].value = 0.01
+    this.crtPass.uniforms['rgbPower'].value = 0.1
 
     this.vignettePass = new ShaderPass(VignetteShader)
     this.vignettePass.uniforms['offset'].value = 0.5
@@ -152,8 +171,9 @@ class GameEngine {
     this.copyPass = new ShaderPass(CopyShader)
 
     this.composer.addPass(this.renderPass)
+    this.composer.addPass(this.outlinePass)
     if (DEBUG_SHADERS) {
-      this.composer.addPass(this.pixelPass)
+      // this.composer.addPass(this.pixelPass)
       // this.composer.addPass(this.vignettePass)
       // this.composer.addPass(this.rgbPass)
       this.composer.addPass(this.badTVPass)
@@ -217,7 +237,7 @@ class GameEngine {
       const deltaMs = this.clock.getDelta() * 1000
       this.update({
         delta: deltaMs,
-        speed: SIXTY_FPS_MS / (deltaMs > 0 ? deltaMs : SIXTY_FPS_MS),
+        speed: (deltaMs > 0 ? deltaMs : SIXTY_FPS_MS) / SIXTY_FPS_MS,
         elapsed: this.clock.elapsedTime,
       })
 

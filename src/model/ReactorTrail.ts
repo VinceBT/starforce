@@ -15,6 +15,8 @@ class ReactorTrail extends Entity {
 
   private readonly options: ReactorTrailOptions
 
+  private velocity = new THREE.Vector3()
+
   constructor(gameEngine: GameEngine, options: ReactorTrailOptions) {
     super(gameEngine)
 
@@ -31,21 +33,18 @@ class ReactorTrail extends Entity {
 
     if (options.initialPosition) this.position.copy(options.initialPosition)
     if (options.initialRotation) this.rotation.copy(options.initialRotation)
+    if (options.initialVelocity) this.velocity.copy(options.initialVelocity)
 
-    gameEngine.entities.push(this)
+    gameEngine.additionalEntities.push(this)
     gameEngine.scene?.add(this)
   }
 
   update(options: UpdateOptions) {
-    if (this.options.initialVelocity) {
-      this.position.add(
-        this.options.initialVelocity.multiplyScalar(options.speed)
-      )
-    }
+    this.position.add(this.velocity.clone().multiplyScalar(options.speed))
 
     this.life--
-    const nextScale = this.life / ReactorTrail.maxLife
 
+    const nextScale = this.life / ReactorTrail.maxLife
     this.scale.set(nextScale, nextScale, nextScale)
 
     return this.life > 0

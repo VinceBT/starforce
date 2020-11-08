@@ -18,6 +18,8 @@ class Ship extends Entity {
 
   private shipScale = 6
 
+  private ship: THREE.Mesh
+
   constructor(gameEngine: GameEngine) {
     super(gameEngine)
 
@@ -26,13 +28,15 @@ class Ship extends Entity {
     const { geometry: shipGeometry } = loader.parse(
       require('../assets/objects/ship.json')
     )
-    const ship = new THREE.Mesh(
+    this.ship = new THREE.Mesh(
       shipGeometry,
       new THREE.MeshLambertMaterial({
         color: 0x0099ff,
         flatShading: true,
       })
     )
+
+    this.gameEngine.outlinePass.selectedObjects = [this.ship]
 
     this.scale.set(this.shipScale, this.shipScale, this.shipScale)
 
@@ -44,25 +48,17 @@ class Ship extends Entity {
         transparent: true,
       })
     )
-    const glowMesh = new THREEx.GeometricGlowMesh(ship)
-    THREEx.dilateGeometry(glowMesh.outsideMesh.geometry, 0.4)
-    const outsideUniforms = glowMesh.outsideMesh.material.uniforms
-    outsideUniforms.coeficient.value = 2
-    outsideUniforms.power.value = 5
-    outsideUniforms.glowColor.value.set('hotpink')
-    this.add(glowMesh.outsideMesh)
-    // ship.glowMesh = glowMesh.object3d;
 
     barrier.position.z = -3
-    // this.add(barrier)
+    this.add(barrier)
 
-    // Keep after glow computation
+    // Keep at the end
     shipGeometry.computeBoundingSphere()
     shipGeometry.computeFlatVertexNormals()
 
-    this.add(ship)
+    this.add(this.ship)
 
-    gameEngine.entities.push(this)
+    gameEngine.additionalEntities.push(this)
     gameEngine.scene?.add(this)
   }
 
