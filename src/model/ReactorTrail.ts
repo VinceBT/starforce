@@ -17,16 +17,31 @@ class ReactorTrail extends Entity {
 
   private velocity = new THREE.Vector3()
 
+  static reactorTrailGeometry: THREE.Geometry
+
+  static reactorTrailMaterial: THREE.Material
+
   constructor(gameEngine: GameEngine, options: ReactorTrailOptions) {
     super(gameEngine)
 
     this.options = options
 
-    const reactorTrail = new THREE.Mesh(
-      new THREE.BoxGeometry(10, 10, 10),
-      new THREE.MeshLambertMaterial({
+    if (!ReactorTrail.reactorTrailGeometry) {
+      ReactorTrail.reactorTrailGeometry = new THREE.BoxGeometry(10, 10, 10)
+      ReactorTrail.reactorTrailGeometry.computeBoundingSphere()
+      ReactorTrail.reactorTrailGeometry.computeFlatVertexNormals()
+    }
+
+    if (!ReactorTrail.reactorTrailMaterial) {
+      ReactorTrail.reactorTrailMaterial = new THREE.MeshLambertMaterial({
         color: 0x0099ff,
+        flatShading: true,
       })
+    }
+
+    const reactorTrail = new THREE.Mesh(
+      ReactorTrail.reactorTrailGeometry,
+      ReactorTrail.reactorTrailMaterial
     )
 
     this.add(reactorTrail)

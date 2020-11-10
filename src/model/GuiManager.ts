@@ -53,11 +53,7 @@ export default class GuiManager implements Updatable {
 
     const shaderFolder = this.gui.addFolder('Shaders')
 
-    this.addShader(
-      shaderFolder,
-      'BadTV Pass',
-      this.gameEngine.badTVPass.uniforms
-    )
+    this.addShader(shaderFolder, 'BadTV Pass', this.gameEngine.badTVPass.uniforms)
       .add('distortion', 0.1, 20, 0.1)
       .add('distortion2', 0.1, 20, 0.1)
       .add('speed', 0.0, 1.0, 0.01)
@@ -67,11 +63,7 @@ export default class GuiManager implements Updatable {
       .add('amount', 0.0, 0.1)
       .add('angle', 0.0, Math.PI * 2)
 
-    this.addShader(
-      shaderFolder,
-      'Static Pass',
-      this.gameEngine.staticPass.uniforms
-    )
+    this.addShader(shaderFolder, 'Static Pass', this.gameEngine.staticPass.uniforms)
       .add('amount', 0.0, 0.1, 0.01)
       .add('size', 1.0, 100.0, 1.0)
 
@@ -87,19 +79,16 @@ export default class GuiManager implements Updatable {
       .add('vignetteScale', 0, 15, 0.05)
       .add('vignettePower', 0, 15, 0.05)
 
-    this.addShader(
-      shaderFolder,
-      'Vignette Pass',
-      this.gameEngine.vignettePass.uniforms
-    )
+    this.addShader(shaderFolder, 'Vignette Pass', this.gameEngine.vignettePass.uniforms)
       .add('offset', 0, 10, 0.1)
       .add('darkness', 0.0, 10, 0.1)
 
-    this.addShader(
-      shaderFolder,
-      'Pixel Pass',
-      this.gameEngine.pixelPass.uniforms
-    ).add('pixelSize', 0, 30, 1)
+    this.addShader(shaderFolder, 'Pixel Pass', this.gameEngine.pixelPass.uniforms).add(
+      'pixelSize',
+      0,
+      30,
+      1
+    )
 
     const folderOutline = this.gui.addFolder('Outline')
     folderOutline.open()
@@ -114,9 +103,7 @@ export default class GuiManager implements Updatable {
     const folder = shaderFolder.addFolder(folderName)
     folder.open()
     const fn = (propName: string, min: number, max: number, step?: number) => {
-      const val = folder
-        .add(uniforms[propName], 'value', min, max)
-        .name(propName)
+      const val = folder.add(uniforms[propName], 'value', min, max).name(propName)
       if (typeof step === 'number') val.step(step)
       return { add: fn }
     }

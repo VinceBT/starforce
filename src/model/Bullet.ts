@@ -13,22 +13,33 @@ class Bullet extends Entity {
 
   private velocity = new THREE.Vector3()
 
+  static bulletGeometry: THREE.Geometry
+
+  static bulletMaterial: THREE.Material
+
   constructor(gameEngine: GameEngine, options: BulletOptions) {
     super(gameEngine)
 
     this.options = options
 
+    if (!Bullet.bulletGeometry) {
+      Bullet.bulletGeometry = new THREE.BoxGeometry(8, 8, 30)
+      Bullet.bulletGeometry.computeBoundingSphere()
+      Bullet.bulletGeometry.computeFlatVertexNormals()
+    }
+
+    if (!Bullet.bulletMaterial) {
+      Bullet.bulletMaterial = new THREE.MeshLambertMaterial({
+        color: 0x88ff88,
+        flatShading: true,
+      })
+    }
+
     const bulletGeometry = new THREE.BoxGeometry(8, 8, 30)
     bulletGeometry.computeBoundingSphere()
     bulletGeometry.computeFlatVertexNormals()
 
-    const bullet = new THREE.Mesh(
-      bulletGeometry,
-      new THREE.MeshLambertMaterial({
-        color: 0x88ff88,
-        flatShading: true,
-      })
-    )
+    const bullet = new THREE.Mesh(Bullet.bulletGeometry, Bullet.bulletMaterial)
 
     this.add(bullet)
 

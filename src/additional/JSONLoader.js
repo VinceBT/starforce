@@ -3,9 +3,7 @@ import * as THREE from 'three'
 const JSONLoader = (function () {
   function JSONLoader(manager) {
     if (typeof manager === 'boolean') {
-      console.warn(
-        'THREE.JSONLoader: showStatus parameter has been removed from constructor.'
-      )
+      console.warn('THREE.JSONLoader: showStatus parameter has been removed from constructor.')
       manager = undefined
     }
 
@@ -20,10 +18,7 @@ const JSONLoader = (function () {
     load: function (url, onLoad, onProgress, onError) {
       const scope = this
 
-      const path =
-        this.path === undefined
-          ? THREE.LoaderUtils.extractUrlBase(url)
-          : this.path
+      const path = this.path === undefined ? THREE.LoaderUtils.extractUrlBase(url) : this.path
 
       const loader = new THREE.FileLoader(this.manager)
       loader.setPath(this.path)
@@ -40,9 +35,7 @@ const JSONLoader = (function () {
             if (type !== undefined) {
               if (type.toLowerCase() === 'object') {
                 console.error(
-                  'THREE.JSONLoader: ' +
-                    url +
-                    ' should be loaded with THREE.ObjectLoader instead.'
+                  'THREE.JSONLoader: ' + url + ' should be loaded with THREE.ObjectLoader instead.'
                 )
                 return
               }
@@ -201,11 +194,7 @@ const JSONLoader = (function () {
             if (hasFaceNormal) {
               normalIndex = faces[offset++] * 3
 
-              faceA.normal.set(
-                normals[normalIndex++],
-                normals[normalIndex++],
-                normals[normalIndex]
-              )
+              faceA.normal.set(normals[normalIndex++], normals[normalIndex++], normals[normalIndex])
 
               faceB.normal.copy(faceA.normal)
             }
@@ -282,11 +271,7 @@ const JSONLoader = (function () {
             if (hasFaceNormal) {
               normalIndex = faces[offset++] * 3
 
-              face.normal.set(
-                normals[normalIndex++],
-                normals[normalIndex++],
-                normals[normalIndex]
-              )
+              face.normal.set(normals[normalIndex++], normals[normalIndex++], normals[normalIndex])
             }
 
             if (hasFaceVertexNormal) {
@@ -325,11 +310,7 @@ const JSONLoader = (function () {
           json.influencesPerVertex !== undefined ? json.influencesPerVertex : 2
 
         if (json.skinWeights) {
-          for (
-            let i = 0, l = json.skinWeights.length;
-            i < l;
-            i += influencesPerVertex
-          ) {
+          for (let i = 0, l = json.skinWeights.length; i < l; i += influencesPerVertex) {
             const x = json.skinWeights[i]
             const y = influencesPerVertex > 1 ? json.skinWeights[i + 1] : 0
             const z = influencesPerVertex > 2 ? json.skinWeights[i + 2] : 0
@@ -340,11 +321,7 @@ const JSONLoader = (function () {
         }
 
         if (json.skinIndices) {
-          for (
-            let i = 0, l = json.skinIndices.length;
-            i < l;
-            i += influencesPerVertex
-          ) {
+          for (let i = 0, l = json.skinIndices.length; i < l; i += influencesPerVertex) {
             const a = json.skinIndices[i]
             const b = influencesPerVertex > 1 ? json.skinIndices[i + 1] : 0
             const c = influencesPerVertex > 2 ? json.skinIndices[i + 2] : 0
@@ -430,10 +407,7 @@ const JSONLoader = (function () {
         }
 
         for (let i = 0; i < animations.length; i++) {
-          const clip = THREE.AnimationClip.parseAnimation(
-            animations[i],
-            geometry.bones
-          )
+          const clip = THREE.AnimationClip.parseAnimation(animations[i], geometry.bones)
           if (clip) outputAnimations.push(clip)
         }
 

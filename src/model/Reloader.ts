@@ -8,12 +8,23 @@ export default class Reloader {
     this.elapsedAfterTick = initialDelta
   }
 
-  tick(delta: number): boolean {
+  tick(delta: number) {
     this.elapsedAfterTick += delta
-    if (this.elapsedAfterTick > this.reloadTime) {
-      this.elapsedAfterTick = this.elapsedAfterTick - this.reloadTime
-      return true
+  }
+
+  canShoot() {
+    return this.elapsedAfterTick >= this.reloadTime
+  }
+
+  shoot() {
+    this.elapsedAfterTick = 0
+  }
+
+  reset() {
+    if (this.elapsedAfterTick < this.reloadTime) {
+      // Nothing, let the tick continue
+    } else {
+      this.elapsedAfterTick = this.reloadTime
     }
-    return false
   }
 }

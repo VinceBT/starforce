@@ -9,7 +9,7 @@ module.exports = {
   ],
   plugins: ['simple-import-sort'],
   rules: {
-    'array-element-newline': ["error", "consistent"],
+    'array-element-newline': ['error', 'consistent'],
     curly: ['error', 'multi-line'],
     'import/order': 'off',
     'import/newline-after-import': ['error', { count: 1 }],
@@ -22,11 +22,7 @@ module.exports = {
     semi: ['error', 'never'],
     'simple-import-sort/sort': 'error',
     'sort-imports': 'off',
-    'spaced-comment': [
-      'error',
-      'always',
-      { markers: ['/'], block: { balanced: true } },
-    ],
+    'spaced-comment': ['error', 'always', { markers: ['/'], block: { balanced: true } }],
     quotes: ['error', 'single'],
     'prettier/prettier': [
       'error',

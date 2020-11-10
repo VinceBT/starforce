@@ -1,3 +1,4 @@
-export function randomChance(chance = 0.5) {
-  return Math.random() >= chance
+export function randomBetween(min: number, max: number) {
+  const span = max - min
+  return Math.random() * span + min
 }

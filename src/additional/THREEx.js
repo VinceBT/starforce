@@ -316,49 +316,33 @@ THREEx.ToxicPproc.Passes = function (presetLabel) {
 
   // hBlurPass
   const hBlurPass = (this.hBlurPass = new ShaderPass(HorizontalBlurShader))
-  const hBlurTween = (this.hBlurTween = new THREEx.UniformsTween(
-    hBlurPass.uniforms,
-    {
-      h: THREEx.UniformsTween.Easing.Linear.None,
-    }
-  ))
+  const hBlurTween = (this.hBlurTween = new THREEx.UniformsTween(hBlurPass.uniforms, {
+    h: THREEx.UniformsTween.Easing.Linear.None,
+  }))
 
   // vBlurPass
   const vBlurPass = (this.vBlurPass = new ShaderPass(VerticalBlurShader))
-  const vBlurTween = (this.vBlurTween = new THREEx.UniformsTween(
-    vBlurPass.uniforms,
-    {
-      v: THREEx.UniformsTween.Easing.Linear.None,
-    }
-  ))
+  const vBlurTween = (this.vBlurTween = new THREEx.UniformsTween(vBlurPass.uniforms, {
+    v: THREEx.UniformsTween.Easing.Linear.None,
+  }))
 
   // rgbRadialPass
   const rgbRadialPass = (this.rgbRadialPass = new ShaderPass(
     THREEx.ToxicPproc.RGBShiftRadialShader
   ))
-  const rgbRadialTween = (this.rgbRadialTween = new THREEx.UniformsTween(
-    rgbRadialPass.uniforms,
-    {
-      factor: THREEx.UniformsTween.Easing.Linear.None,
-    }
-  ))
+  const rgbRadialTween = (this.rgbRadialTween = new THREEx.UniformsTween(rgbRadialPass.uniforms, {
+    factor: THREEx.UniformsTween.Easing.Linear.None,
+  }))
 
   // seeDoublePass
-  const seeDoublePass = (this.seeDoublePass = new ShaderPass(
-    THREEx.ToxicPproc.SeeDoubleShader
-  ))
-  const seeDoubleTween = (this.seeDoubleTween = new THREEx.UniformsTween(
-    seeDoublePass.uniforms,
-    {
-      radius: THREEx.UniformsTween.Easing.Linear.None,
-      timeSpeed: THREEx.UniformsTween.Easing.Linear.None,
-    }
-  ))
+  const seeDoublePass = (this.seeDoublePass = new ShaderPass(THREEx.ToxicPproc.SeeDoubleShader))
+  const seeDoubleTween = (this.seeDoubleTween = new THREEx.UniformsTween(seeDoublePass.uniforms, {
+    radius: THREEx.UniformsTween.Easing.Linear.None,
+    timeSpeed: THREEx.UniformsTween.Easing.Linear.None,
+  }))
 
   // refractionPass
-  const refractionPass = (this.refractionPass = new ShaderPass(
-    THREEx.ToxicPproc.RefractionShader
-  ))
+  const refractionPass = (this.refractionPass = new ShaderPass(THREEx.ToxicPproc.RefractionShader))
   const refractionTween = (this.refractionTween = new THREEx.UniformsTween(
     refractionPass.uniforms,
     {

@@ -28,7 +28,7 @@ const CameraSettingsLookup: { [key in CameraSettings]: CameraSet } = {
   },
   [CameraSettings.UPFRONT]: {
     position: new THREE.Vector3(0, 500, 1500),
-    rotation: new THREE.Euler(-Math.PI / 8, 0, 0),
+    rotation: new THREE.Euler(-Math.PI / 6, 0, 0),
   },
 }
 

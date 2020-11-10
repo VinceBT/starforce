@@ -88,11 +88,7 @@ export default class ControlsManager extends EventEmitter {
   constructor(domElement: HTMLElement) {
     super()
 
-    domElement.addEventListener(
-      'contextmenu',
-      (event) => void event.preventDefault(),
-      false
-    )
+    domElement.addEventListener('contextmenu', (event) => void event.preventDefault(), false)
 
     domElement.addEventListener(
       'mousedown',

@@ -1,8 +1,9 @@
 import * as THREE from 'three'
 
-import { EntityOptions, PLANE_HALF, PLANE_SIZE } from './Constants'
-import Entity, { UpdateOptions } from './Entity'
-import GameEngine from './GameEngine'
+import { EntityOptions, PLANE_HALF, PLANE_SIZE } from '../Constants'
+import Entity, { UpdateOptions } from '../Entity'
+import GameEngine from '../GameEngine'
+import starImage from './star.png'
 
 export type StarOptions = {
   initial: boolean
@@ -18,17 +19,16 @@ class Star extends Entity {
 
     this.options = options
 
-    const starGeometry = new THREE.PlaneBufferGeometry(10, 10)
+    const map = new THREE.TextureLoader().load(starImage)
+    const material = new THREE.SpriteMaterial({ map: map })
+    const sprite = new THREE.Sprite(material)
 
-    const starMat = new THREE.MeshBasicMaterial({
-      color: 0xffffff,
-    })
+    this.add(sprite)
 
-    const star = new THREE.Mesh(starGeometry, starMat)
-    const scale = 2
+    const scale = 20
     this.scale.set(scale, scale, scale)
 
-    const yOffset = 1000
+    const yOffset = PLANE_HALF / 5
     this.position.x = Math.random() * PLANE_SIZE - PLANE_HALF
     this.position.y = -Math.random() * (PLANE_HALF - yOffset) - yOffset
     this.position.z = options.initial
@@ -37,13 +37,9 @@ class Star extends Entity {
 
     this.rotation.x = -Math.PI / 2
 
-    this.velocity = new THREE.Vector3(
-      0,
-      0,
-      1 / (Math.abs(this.position.y) / 10000)
-    )
+    this.velocity = new THREE.Vector3(0, 0, 1 / (Math.abs(this.position.y) / 10000))
 
-    this.add(star)
+    // this.add(star)
 
     if (options.initialPosition) this.position.copy(options.initialPosition)
     if (options.initialRotation) this.rotation.copy(options.initialRotation)

@@ -15,16 +15,13 @@ import StaticShader from '../additional/StaticShader'
 import VignetteShader from '../additional/VignetteShader'
 import { filterNullish, flattenArray } from '../utils/ArrayUtils'
 import { SIXTY_FPS_MS } from './Constants'
-import ControlsManager, {
-  KeyboardKeycodes,
-  MouseButtons,
-} from './ControlsManager'
+import ControlsManager, { KeyboardKeycodes, MouseButtons } from './ControlsManager'
 import { Dimensions } from './Dimensions'
 import Entity, { UpdateOptions } from './Entity'
 import GuiManager from './GuiManager'
 import MainCamera from './MainCamera'
 import Plane from './Plane'
-import Ship from './Ship'
+import Ship from './Ship/Ship'
 
 const DEBUG_SHADERS = true
 
@@ -67,7 +64,7 @@ class GameEngine {
 
   public clock: THREE.Clock
 
-  public mouse: THREE.Vector2
+  public mouse: THREE.Vector2 = new THREE.Vector2()
 
   public ambientLight: THREE.AmbientLight
 
@@ -84,6 +81,8 @@ class GameEngine {
   public additionalEntities: (Entity | Entity[] | null)[] = []
 
   public speed = 1
+
+  public shouldUpdate = document.hasFocus()
 
   constructor(domElement: HTMLDivElement) {
     this.domElement = domElement
@@ -208,11 +207,11 @@ class GameEngine {
       console.log('yo')
     })
 
+    this.clock = new THREE.Clock()
+
     // Entities
     this.plane = new Plane(this)
     this.ship = new Ship(this)
-
-    this.clock = new THREE.Clock()
 
     const updateViewport = () => {
       const nextDimensions = Dimensions.fromDOMElement(this.domElement)
@@ -241,11 +240,6 @@ class GameEngine {
         elapsed: this.clock.elapsedTime,
       })
 
-      this.badTVPass.uniforms['time'].value = this.clock.elapsedTime
-      this.filmPass.uniforms['time'].value = this.clock.elapsedTime
-      this.staticPass.uniforms['time'].value = this.clock.elapsedTime
-      this.crtPass.uniforms['time'].value = this.clock.elapsedTime
-
       updateViewport()
       this.composer.render(deltaMs)
 
@@ -261,6 +255,22 @@ class GameEngine {
 
     window.addEventListener('resize', onWindowResize, false)
 
+    window.addEventListener(
+      'focus',
+      () => {
+        this.shouldUpdate = true
+      },
+      false
+    )
+
+    window.addEventListener(
+      'blur',
+      () => {
+        this.shouldUpdate = false
+      },
+      false
+    )
+
     const states = {
       tabActive: true,
       isPlaying: false,
@@ -269,8 +279,6 @@ class GameEngine {
       isScrolling: false,
       hoversCanvas: false,
     }
-
-    this.mouse = new THREE.Vector2()
 
     const onMouseMove = (event: MouseEvent) => {
       event.preventDefault()
@@ -294,11 +302,15 @@ class GameEngine {
   }
 
   public update(options: UpdateOptions) {
+    if (!this.shouldUpdate) return
+
+    this.badTVPass.uniforms['time'].value = options.elapsed
+    this.filmPass.uniforms['time'].value = options.elapsed
+    this.staticPass.uniforms['time'].value = options.elapsed
+    this.crtPass.uniforms['time'].value = options.elapsed
+
     if (Math.abs(1 - options.speed) >= 1) {
-      console.warn(
-        'Speed variation is too big:',
-        (1 - options.speed).toFixed(3)
-      )
+      console.warn('Speed variation is too big:', (1 - options.speed).toFixed(3))
     }
     this.entities = filterNullish([
       ...this.entities.map((entity) => {
