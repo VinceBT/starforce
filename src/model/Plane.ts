@@ -4,9 +4,9 @@ import { randomBetween } from '../utils/NumberUtils'
 import { PLANE_HALF, PLANE_SIZE, PLANE_STEP } from './Constants'
 import Entity, { UpdateOptions } from './Entity'
 import GameEngine from './GameEngine'
-import Meteor from './Meteor/Meteor'
+import Meteor from './Meteor'
 import Reloader from './Reloader'
-import Star from './Star/Star'
+import Star from './Star'
 
 export enum Cardinals {
   NORTH,
@@ -29,7 +29,7 @@ class Plane extends Entity {
 
   private starReloader = new Reloader(200)
 
-  private meteorReloader = new Reloader(1500)
+  private meteorReloader = new Reloader(1000, 500)
 
   boundsMap = new Map<Cardinals, THREE.Vector3 | null>([
     [Cardinals.NORTH, null],
@@ -76,28 +76,25 @@ class Plane extends Entity {
     for (let i = 0; i <= 300; i++) {
       new Star(this.gameEngine, { initial: true })
     }
-
-    gameEngine.additionalEntities.push(this)
-    gameEngine.scene?.add(this)
   }
 
-  update(options: UpdateOptions) {
+  update(updateOptions: UpdateOptions) {
     const velocity = new THREE.Vector3(0, 0, 5).multiplyScalar(
-      options.speed * this.gameEngine.speed
+      updateOptions.speed * this.gameEngine.speed
     )
 
     this.position.add(velocity)
     this.position.z = this.position.z % PLANE_STEP
 
-    this.starReloader.tick(options.delta)
-    if (this.starReloader.canShoot()) {
-      this.starReloader.shoot()
+    this.starReloader.tick(updateOptions.delta)
+    if (this.starReloader.canTrigger()) {
+      this.starReloader.trigger()
       new Star(this.gameEngine, { initial: false })
     }
 
-    this.meteorReloader.tick(options.delta)
-    if (this.meteorReloader.canShoot()) {
-      this.meteorReloader.shoot()
+    this.meteorReloader.tick(updateOptions.delta)
+    if (this.gameEngine.hasGameStarted && this.meteorReloader.canTrigger()) {
+      this.meteorReloader.trigger()
 
       const west = this.boundsMap.get(Cardinals.WEST)
       const north = this.boundsMap.get(Cardinals.NORTH)
@@ -105,7 +102,7 @@ class Plane extends Entity {
       if (west && north && east) {
         new Meteor(this.gameEngine, {
           size: Math.floor(randomBetween(3, 10)),
-          initialVelocity: new THREE.Vector3(randomBetween(-0.5, 0.5), 0, randomBetween(1, 5)),
+          initialVelocity: new THREE.Vector3(randomBetween(-0.5, 0.5), 0, randomBetween(3, 7)),
           initialPosition: this.position
             .clone()
             .add(new THREE.Vector3(randomBetween(west.x, east.x), 0, north.z - 200)),

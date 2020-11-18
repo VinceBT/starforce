@@ -1,0 +1,16 @@
+{
+  "auto_submit_off_label": "Disable auto submit",
+  "auto_submit_on_label": "Enable auto submit",
+  "empty_label": "Empty value",
+  "reset_label": "Reset",
+  "save_label": "Save",
+  "submit_label": "OK",
+  "title": "Simple theme editor",
+  "type_color": "Color",
+  "type_em": "Em",
+  "type_label": "Type",
+  "type_px": "Px",
+  "type_text": "Text",
+  "value_label": "Value",
+  "value_placeholder": "Value"
+}

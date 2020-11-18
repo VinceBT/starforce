@@ -1,0 +1,115 @@
+.Game {
+  width: 100%;
+  height: 100%;
+  font-family: 'BitTrip7sRB', sans-serif;
+
+  .Canvas-container {
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    cursor: url(../../assets/misc/ship_cursor.cur), auto;
+
+    canvas {
+      display: block;
+      pointer-events: none;
+    }
+  }
+
+  .Screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 300ms ease;
+    user-select: none;
+
+    &.show {
+      opacity: 1;
+      pointer-events: initial;
+    }
+
+    .title {
+      text-align: center;
+      font-size: 8rem;
+      text-transform: uppercase;
+    }
+
+    .sound {
+      height: 6.4rem;
+      width: 6.4rem;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 3rem;
+    }
+  }
+
+  .Splash-Container {
+    @extend .Screen;
+    background-color: rgba(0, 0, 0, 1);
+    cursor: pointer;
+
+    .title {
+      text-align: center;
+      font-size: 8rem;
+      text-transform: uppercase;
+    }
+
+    .sound {
+      height: 6.4rem;
+      width: 6.4rem;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 3rem;
+    }
+  }
+
+  .Menu-Container {
+    @extend .Screen;
+    background-color: rgba(0, 0, 0, 0.5);
+
+    .title {
+      text-align: center;
+      font-size: 8rem;
+      text-transform: uppercase;
+      color: #33cbff;
+      text-shadow: 1px 1px hotpink, 2px 2px hotpink;
+    }
+
+    .button {
+      color: white;
+      border: 2px solid white;
+      border-radius: 0;
+      background-color: transparent;
+      font-size: 2rem;
+      padding: 1.2rem 1.2rem;
+      width: 32rem;
+      text-align: center;
+      transition: background-color 300ms ease;
+      cursor: pointer;
+
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+      }
+    }
+  }
+
+  .Gameover-Container {
+    @extend .Menu-Container;
+  }
+
+  .Pause-Container {
+    @extend .Menu-Container;
+  }
+}

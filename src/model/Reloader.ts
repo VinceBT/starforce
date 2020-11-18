@@ -12,12 +12,17 @@ export default class Reloader {
     this.elapsedAfterTick += delta
   }
 
-  canShoot() {
+  canTrigger() {
     return this.elapsedAfterTick >= this.reloadTime
   }
 
-  shoot() {
+  trigger() {
     this.elapsedAfterTick = 0
+  }
+
+  getPercent(capped: boolean = true): number {
+    const percent = this.elapsedAfterTick / this.reloadTime
+    return capped ? Math.min(100, percent) : percent
   }
 
   reset() {

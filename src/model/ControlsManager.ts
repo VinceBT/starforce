@@ -142,7 +142,7 @@ export default class ControlsManager extends EventEmitter {
       if (event.deltaY >= 0) {
         console.log('scroll --')
       } else {
-        console.log('scroll +++')
+        console.log('scroll ++')
       }
     })
   }

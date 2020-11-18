@@ -52,9 +52,6 @@ class MainCamera extends Entity {
     this.rotation.copy(cameraSet.rotation)
 
     this.add(this.perspectiveCamera)
-
-    gameEngine.additionalEntities.push(this)
-    gameEngine.scene?.add(this)
   }
 
   getCameraSet() {
@@ -74,7 +71,7 @@ class MainCamera extends Entity {
     })
   }
 
-  update(options: UpdateOptions) {
+  update(_options: UpdateOptions) {
     return true
   }
 }

@@ -1,26 +1,32 @@
+import CANNON, { ContactEquation } from 'cannon'
 import * as THREE from 'three'
 
-import { EntityOptions, PLANE_HALF } from './Constants'
-import Entity, { UpdateOptions } from './Entity'
+import { Collisionable, CollisionableEntity, CollisionBody } from './Collisionable'
+import { PLANE_HALF } from './Constants'
+import { Damaging } from './Damaging'
+import Entity, { EntityOptions, Moving, UpdateOptions } from './Entity'
 import GameEngine from './GameEngine'
+import Meteor from './Meteor'
 
 export type BulletOptions = {
   damage: number
 } & EntityOptions
 
-class Bullet extends Entity {
-  private readonly options
-
-  private velocity = new THREE.Vector3()
-
+class Bullet extends Entity implements Moving, Collisionable, Damaging {
   static bulletGeometry: THREE.Geometry
 
   static bulletMaterial: THREE.Material
 
-  constructor(gameEngine: GameEngine, options: BulletOptions) {
+  public velocity = new THREE.Vector3()
+
+  public collisionBody: CollisionBody
+
+  public damage: number
+
+  constructor(gameEngine: GameEngine, bulletOptions: BulletOptions) {
     super(gameEngine)
 
-    this.options = options
+    this.damage = bulletOptions.damage
 
     if (!Bullet.bulletGeometry) {
       Bullet.bulletGeometry = new THREE.BoxGeometry(8, 8, 30)
@@ -43,16 +49,30 @@ class Bullet extends Entity {
 
     this.add(bullet)
 
-    if (options.initialPosition) this.position.copy(options.initialPosition)
-    if (options.initialRotation) this.rotation.copy(options.initialRotation)
-    if (options.initialVelocity) this.velocity.copy(options.initialVelocity)
+    if (bulletOptions.initialPosition) this.position.copy(bulletOptions.initialPosition)
+    if (bulletOptions.initialRotation) this.rotation.copy(bulletOptions.initialRotation)
+    if (bulletOptions.initialVelocity) this.velocity.copy(bulletOptions.initialVelocity)
 
-    gameEngine.additionalEntities.push(this)
-    gameEngine.scene?.add(this)
+    this.collisionBody = new CollisionBody(this, { mass: 1 })
+    this.collisionBody.addShape(
+      new CANNON.Sphere((bulletGeometry?.boundingSphere?.radius ?? 1) * this.scale.x)
+    )
+    this.collisionBody.computeAABB()
+    this.collisionBody.collisionResponse = false
+    this.collisionBody.update()
   }
 
-  update(options: UpdateOptions) {
-    this.position.add(this.velocity.clone().multiplyScalar(options.speed))
+  collideWith(collisionableEntity: CollisionableEntity, contactEquation: ContactEquation) {
+    if (collisionableEntity instanceof Meteor) {
+      const meteor = collisionableEntity as Meteor
+      this.kill()
+      meteor.takeDamage(this.damage)
+    }
+  }
+
+  update(updateOptions: UpdateOptions) {
+    this.position.add(this.velocity.clone().multiplyScalar(updateOptions.speed))
+    this.collisionBody.update()
 
     if (
       Math.abs(this.position.x) >= PLANE_HALF ||
@@ -61,7 +81,12 @@ class Bullet extends Entity {
     ) {
       return false
     }
-    return true
+    return super.update(updateOptions)
+  }
+
+  kill() {
+    super.kill()
+    this.collisionBody.removeBody()
   }
 }
 

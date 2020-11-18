@@ -1,14 +1,31 @@
-import './index.css'
+import './index.scss'
 
 import React from 'react'
 import ReactDOM from 'react-dom'
+import { Provider } from 'react-redux'
+import { PersistGate } from 'redux-persist/integration/react'
 
-import App from './App'
+import Root from './containers/Root/Root'
+import TranslationGate from './containers/TranslationGate/TranslationGate'
+import configureStore from './redux/configureStore'
 import reportWebVitals from './reportWebVitals'
+
+const storeConfig = configureStore()
+const { store, persistor } = storeConfig
+
+export const StoreConfig = React.createContext(storeConfig)
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        <TranslationGate>
+          <StoreConfig.Provider value={storeConfig}>
+            <Root />
+          </StoreConfig.Provider>
+        </TranslationGate>
+      </PersistGate>
+    </Provider>
   </React.StrictMode>,
   document.getElementById('root')
 )

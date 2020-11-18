@@ -1,3 +1,6 @@
+import CANNON from 'cannon'
+import { EventEmitter } from 'events'
+import $ from 'jquery'
 import * as THREE from 'three'
 import Stats from 'three/examples/jsm/libs/stats.module'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer'
@@ -14,79 +17,78 @@ import CRTShader from '../additional/CRTDistortion'
 import StaticShader from '../additional/StaticShader'
 import VignetteShader from '../additional/VignetteShader'
 import { filterNullish, flattenArray } from '../utils/ArrayUtils'
+import Bullet from './Bullet'
+import { CollisionBody } from './Collisionable'
 import { SIXTY_FPS_MS } from './Constants'
 import ControlsManager, { KeyboardKeycodes, MouseButtons } from './ControlsManager'
 import { Dimensions } from './Dimensions'
 import Entity, { UpdateOptions } from './Entity'
 import GuiManager from './GuiManager'
 import MainCamera from './MainCamera'
+import Meteor from './Meteor'
 import Plane from './Plane'
-import Ship from './Ship/Ship'
+import ReactorTrail from './ReactorTrail'
+import Ship from './Ship'
+import SoundEngine from './SoundEngine'
+
+export enum GameEngineEvents {
+  DEATH = 'death',
+  PAUSE = 'pause',
+  RESUME = 'resume',
+}
 
 const DEBUG_SHADERS = true
 
-class GameEngine {
+class GameEngine extends EventEmitter {
   public domElement: HTMLDivElement
-
   private animationFrameReference: number
-
   public scene: THREE.Scene
-
   public camera: MainCamera
-
   public renderer: THREE.WebGLRenderer
 
   public renderPass: RenderPass
-
   public badTVPass: ShaderPass
-
   public rgbPass: ShaderPass
-
   public filmPass: ShaderPass
-
   public staticPass: ShaderPass
-
   public vignettePass: ShaderPass
-
   public pixelPass: ShaderPass
-
   public crtPass: ShaderPass
-
   public outlinePass: OutlinePass
-
   public copyPass: ShaderPass
 
   public composer: EffectComposer
-
   public stats: Stats
-
   public guiManager: GuiManager
-
   public clock: THREE.Clock
-
   public mouse: THREE.Vector2 = new THREE.Vector2()
-
   public ambientLight: THREE.AmbientLight
-
   public directionalLight: THREE.DirectionalLight
-
   public controlsManager: ControlsManager
-
   public plane: Plane
-
   public ship: Ship
-
   public entities: Entity[] = []
-
   public additionalEntities: (Entity | Entity[] | null)[] = []
-
+  public removalEntities: Entity[] = []
   public speed = 1
-
-  public shouldUpdate = document.hasFocus()
+  public hasGameStarted = false
+  public world: CANNON.World
+  public soundEngine: SoundEngine
+  public states = {
+    tabActive: document.hasFocus(),
+    isPlaying: false,
+    mouseOnScreen: true,
+    gamePaused: false,
+    pauseRender: false,
+    isScrolling: false,
+    hoversCanvas: false,
+  }
 
   constructor(domElement: HTMLDivElement) {
-    this.domElement = domElement
+    super()
 
+    this.domElement = domElement
+    this.soundEngine = new SoundEngine()
     this.scene = new THREE.Scene()
 
     // Camera
@@ -192,6 +194,10 @@ class GameEngine {
     // Debug elements
     this.guiManager = new GuiManager(this.domElement, this)
     this.stats = Stats()
+    this.stats.dom.style.removeProperty('left')
+    this.stats.dom.style.removeProperty('top')
+    this.stats.dom.style.right = '0px'
+    this.stats.dom.style.bottom = '0px'
     document.body.appendChild(this.stats.dom)
 
     // Controls
@@ -207,6 +213,7 @@ class GameEngine {
       console.log('yo')
     })
 
+    this.world = new CANNON.World()
     this.clock = new THREE.Clock()
 
     // Entities
@@ -255,66 +262,88 @@ class GameEngine {
 
     window.addEventListener('resize', onWindowResize, false)
 
-    window.addEventListener(
-      'focus',
-      () => {
-        this.shouldUpdate = true
-      },
-      false
-    )
+    $(window).on('mouseleave', () => {
+      this.states.mouseOnScreen = false
+    })
 
-    window.addEventListener(
-      'blur',
-      () => {
-        this.shouldUpdate = false
-      },
-      false
-    )
+    $(window).on('mouseenter', () => {
+      this.states.mouseOnScreen = true
+    })
 
-    const states = {
-      tabActive: true,
-      isPlaying: false,
-      mouseOnScreen: true,
-      gamePaused: false,
-      isScrolling: false,
-      hoversCanvas: false,
-    }
+    $(window).on('blur', () => {
+      this.states.tabActive = false
+    })
 
-    const onMouseMove = (event: MouseEvent) => {
+    $(window).on('focus', () => {
+      this.states.tabActive = true
+    })
+
+    $(document).on('mousemove', (event) => {
       event.preventDefault()
       const nextDimensions = Dimensions.fromDOMElement(this.domElement)
-      this.mouse.set(
-        (event.clientX / nextDimensions.width) * 2 - 1,
-        -(event.clientY / nextDimensions.height) * 2 + 1
-      )
-      if (
-        event.clientX < 0 ||
-        event.clientX > nextDimensions.width ||
-        event.clientY < 0 ||
-        event.clientY > nextDimensions.height
-      ) {
-        states.mouseOnScreen = false
+      this.states.hoversCanvas = event.target ? $(event.target).is('.Canvas-container') : false
+      if (this.states.hoversCanvas) {
+        this.mouse.set(
+          (event.clientX / nextDimensions.width) * 2 - 1,
+          -(event.clientY / nextDimensions.height) * 2 + 1
+        )
       }
-      states.hoversCanvas = false // $(event.target).is('canvas')
-    }
-
-    this.domElement.addEventListener('mousemove', onMouseMove, false)
+    })
   }
 
-  public update(options: UpdateOptions) {
-    if (!this.shouldUpdate) return
+  public restart() {
+    this.ship = new Ship(this)
+    this.mouse = new THREE.Vector2()
+    this.removalEntities.push(
+      ...this.entities.filter((entity) => {
+        const shouldKill =
+          entity instanceof Meteor || entity instanceof Bullet || entity instanceof ReactorTrail
+        if (shouldKill) entity.kill()
+        return shouldKill
+      })
+    )
+  }
 
-    this.badTVPass.uniforms['time'].value = options.elapsed
-    this.filmPass.uniforms['time'].value = options.elapsed
-    this.staticPass.uniforms['time'].value = options.elapsed
-    this.crtPass.uniforms['time'].value = options.elapsed
+  public update(updateOptions: UpdateOptions) {
+    const pauseRender = !(
+      this.states.mouseOnScreen &&
+      this.states.tabActive &&
+      !this.states.gamePaused
+    )
 
-    if (Math.abs(1 - options.speed) >= 1) {
-      console.warn('Speed variation is too big:', (1 - options.speed).toFixed(3))
+    if (pauseRender !== this.states.pauseRender) {
+      if (pauseRender) {
+        this.emit(GameEngineEvents.PAUSE)
+      } else if (!pauseRender) {
+        this.emit(GameEngineEvents.RESUME)
+      }
+      this.states.pauseRender = pauseRender
     }
+
+    if (this.states.pauseRender) return
+
+    this.badTVPass.uniforms['time'].value = updateOptions.elapsed
+    this.filmPass.uniforms['time'].value = updateOptions.elapsed
+    this.staticPass.uniforms['time'].value = updateOptions.elapsed
+    this.crtPass.uniforms['time'].value = updateOptions.elapsed
+
+    this.world.step(updateOptions.delta)
+    this.world.contacts.forEach((contact) => {
+      if (contact.bi instanceof CollisionBody && contact.bj instanceof CollisionBody) {
+        const pe1 = contact.bi as CollisionBody
+        const pe2 = contact.bj as CollisionBody
+        pe1.collisionableEntity.collideWith?.(pe2.collisionableEntity, contact)
+        pe2.collisionableEntity.collideWith?.(pe1.collisionableEntity, contact)
+      }
+    })
+
+    if (Math.abs(1 - updateOptions.speed) >= 1) {
+      console.warn('Speed variation is too big:', (1 - updateOptions.speed).toFixed(3))
+    }
+
     this.entities = filterNullish([
       ...this.entities.map((entity) => {
-        const keepAlive = entity?.update(options)
+        const keepAlive = entity?.update(updateOptions)
         if (keepAlive) {
           return entity
         }
@@ -322,8 +351,9 @@ class GameEngine {
         return null
       }),
       ...flattenArray(this.additionalEntities),
-    ])
+    ]).filter((entity) => !this.removalEntities.includes(entity))
     this.additionalEntities = []
+    this.removalEntities = []
   }
 
   public kill() {

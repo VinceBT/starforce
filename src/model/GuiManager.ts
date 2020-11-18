@@ -91,7 +91,6 @@ export default class GuiManager implements Updatable {
     )
 
     const folderOutline = this.gui.addFolder('Outline')
-    folderOutline.open()
 
     folderOutline.add(this.gameEngine.outlinePass, 'edgeStrength', 0, 50)
     folderOutline.add(this.gameEngine.outlinePass, 'edgeGlow', 0, 50)

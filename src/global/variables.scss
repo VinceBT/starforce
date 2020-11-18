@@ -1,0 +1,45 @@
+$primary-color: #4a86e8;
+$text-color: #5f5f5f;
+
+:export {
+  primaryColor: $primary-color;
+  textColor: $text-color;
+}
+
+@mixin flex {
+  display: flex;
+  flex-direction: column;
+}
+
+$tablet-width: 768px;
+$desktop-width: 1024px;
+
+@mixin mobileOnly {
+  @media (max-width: #{$tablet-width - 1px}) {
+    @content;
+  }
+}
+
+@mixin mobileAndTablet {
+  @media (max-width: #{$desktop-width - 1px}) {
+    @content;
+  }
+}
+
+@mixin tabletOnly {
+  @media (min-width: #{$tablet-width}) and (max-width: #{$desktop-width - 1px}) {
+    @content;
+  }
+}
+
+@mixin tabletAndDesktop {
+  @media (min-width: #{$tablet-width}) {
+    @content;
+  }
+}
+
+@mixin desktopOnly {
+  @media (min-width: #{$desktop-width}) {
+    @content;
+  }
+}
