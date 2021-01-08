@@ -53,6 +53,8 @@ class Bullet extends Entity implements Moving, Collisionable, Damaging {
     if (bulletOptions.initialRotation) this.rotation.copy(bulletOptions.initialRotation)
     if (bulletOptions.initialVelocity) this.velocity.copy(bulletOptions.initialVelocity)
 
+    this.updateRotation()
+
     this.collisionBody = new CollisionBody(this, { mass: 1 })
     this.collisionBody.addShape(
       new CANNON.Sphere((bulletGeometry?.boundingSphere?.radius ?? 1) * this.scale.x)
@@ -70,9 +72,24 @@ class Bullet extends Entity implements Moving, Collisionable, Damaging {
     }
   }
 
+  updateRotation() {
+    const targetVector = new THREE.Vector3(0, 0, -1)
+    const quaternion = new THREE.Quaternion()
+    quaternion.setFromUnitVectors(
+      targetVector.clone().normalize(),
+      this.velocity.clone().normalize()
+    )
+
+    const euler = new THREE.Euler()
+    euler.setFromQuaternion(quaternion)
+    this.rotation.copy(euler)
+  }
+
   update(updateOptions: UpdateOptions) {
     this.position.add(this.velocity.clone().multiplyScalar(updateOptions.speed))
     this.collisionBody.update()
+
+    this.updateRotation()
 
     if (
       Math.abs(this.position.x) >= PLANE_HALF ||

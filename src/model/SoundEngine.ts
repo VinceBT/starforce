@@ -2,7 +2,7 @@ import { Howl, Howler } from 'howler'
 
 export default class SoundEngine {
   constructor() {
-    Howler.volume(0.1)
+    Howler.volume(1)
   }
 
   welcomeSound = new Howl({
@@ -19,13 +19,6 @@ export default class SoundEngine {
     volume: 0.3,
   })
 
-  laserSound = new Howl({
-    src: [require('../assets/sounds/laser.mp3').default],
-    autoplay: false,
-    loop: false,
-    volume: 0.3,
-  })
-
   explosionSound = new Howl({
     src: [require('../assets/sounds/explosion.mp3').default],
     autoplay: false,
@@ -37,6 +30,6 @@ export default class SoundEngine {
     src: [require('../assets/sounds/gameover.mp3').default],
     autoplay: false,
     loop: false,
-    volume: 0.3,
+    volume: 0.2,
   })
 }

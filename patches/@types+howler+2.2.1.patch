@@ -1,0 +1,13 @@
+diff --git a/node_modules/@types/howler/index.d.ts b/node_modules/@types/howler/index.d.ts
+index 205928a..e134458 100644
+--- a/node_modules/@types/howler/index.d.ts
++++ b/node_modules/@types/howler/index.d.ts
+@@ -254,7 +254,7 @@ export class Howl {
+             coneInnerAngle?: number;
+             coneOuterAngle?: number;
+             coneOuterGain?: number;
+-            distanceModel: 'inverse' | 'linear';
++            distanceModel: 'inverse' | 'linear' | 'exponential';
+             maxDistance: number;
+             panningModel: 'HRTF' | 'equalpower';
+             refDistance: number;

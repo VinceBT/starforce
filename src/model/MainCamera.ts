@@ -37,6 +37,8 @@ class MainCamera extends Entity {
 
   public cameraSetting: CameraSettings = CameraSettings.STANDARD
 
+  public audioListener: THREE.AudioListener
+
   constructor(gameEngine: GameEngine) {
     super(gameEngine)
 
@@ -46,6 +48,9 @@ class MainCamera extends Entity {
       0.1,
       100000
     )
+
+    this.audioListener = new THREE.AudioListener()
+    this.perspectiveCamera.add(this.audioListener)
 
     const cameraSet = this.getCameraSet()
     this.position.copy(cameraSet.position)

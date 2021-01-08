@@ -6,6 +6,7 @@ import { Vector3 } from 'three'
 import JSONLoader from '../additional/JSONLoader'
 import { lerp } from '../utils/MathUtils'
 import { randomBetween } from '../utils/NumberUtils'
+import { clonePositionalAudio, setPositionalAudioOnEnded } from '../utils/ThreeUtils'
 import Bullet from './Bullet'
 import { Collisionable, CollisionableEntity, CollisionBody } from './Collisionable'
 import { PLANE_QUARTER } from './Constants'
@@ -34,6 +35,8 @@ class Ship extends Entity implements Moving, Collisionable, Damaging, Living, Gl
   maxLife = 3
   life = this.maxLife
   velocity: Vector3 = new THREE.Vector3()
+  laserPosAudio: THREE.PositionalAudio
+  barrierPosAudio: THREE.PositionalAudio
 
   constructor(gameEngine: GameEngine) {
     super(gameEngine)
@@ -56,18 +59,33 @@ class Ship extends Entity implements Moving, Collisionable, Damaging, Living, Gl
 
     this.scale.set(this.shipScale, this.shipScale, this.shipScale)
 
+    const audioLoader = new THREE.AudioLoader()
+
+    this.laserPosAudio = new THREE.PositionalAudio(this.gameEngine.camera.audioListener)
+    this.laserPosAudio.setRefDistance(400)
+    audioLoader.load(require('../assets/sounds/laser.mp3').default, (buffer) => {
+      this.laserPosAudio.setBuffer(buffer)
+    })
+    this.add(this.laserPosAudio)
+
+    this.barrierPosAudio = new THREE.PositionalAudio(this.gameEngine.camera.audioListener)
+    this.barrierPosAudio.setRefDistance(200)
+    audioLoader.load(require('../assets/sounds/shield.mp3').default, (buffer) => {
+      this.barrierPosAudio.setBuffer(buffer)
+    })
+    this.add(this.barrierPosAudio)
+
     this.barrier = new THREE.Mesh(
       new THREE.SphereGeometry(15, 32, 32),
       new THREE.MeshBasicMaterial({
         color: 0xff22ff,
-        opacity: this.barrierMaxOpacity,
+        opacity: 0,
         transparent: true,
       })
     )
 
     this.barrier.position.z = -3
     this.add(this.barrier)
-
     this.add(this.ship)
 
     this.collisionBody = new CollisionBody(this, { mass: 1 })
@@ -93,35 +111,39 @@ class Ship extends Entity implements Moving, Collisionable, Damaging, Living, Gl
   }
 
   takeDamage(damage: number) {
-    this.life -= damage
-    if (this.life <= 0) {
-      this.kill()
-      this.gameEngine.emit(GameEngineEvents.DEATH)
-      setTimeout(() => {
-        this.gameEngine.soundEngine.gameoverSound.play()
-      }, 600)
-      for (let i = 0; i < 4; i++) {
-        new Scrap(this.gameEngine, {
-          initialPosition: this.position,
-          initialVelocity: new THREE.Vector3(
-            Math.random() * 20 - 10,
-            Math.random() * 20 - 10,
-            Math.random() * 20 - 10
-          ),
-          initialRotation: new THREE.Euler(
-            randomBetween(0, Math.PI * 2),
-            randomBetween(0, Math.PI * 2),
-            randomBetween(0, Math.PI * 2)
-          ),
-          initialRotationSpeed: new THREE.Euler(
-            randomBetween(-1e-2, 1e-2),
-            randomBetween(-1e-2, 1e-2),
-            randomBetween(-1e-2, 1e-2)
-          ),
-        })
-      }
+    if (this.isUsingBarrier) {
+      console.log('damage tanked', damage)
     } else {
-      this.glowingReloader.trigger()
+      this.life -= damage
+      if (this.life <= 0) {
+        this.kill()
+        this.gameEngine.emit(GameEngineEvents.DEATH)
+        setTimeout(() => {
+          this.gameEngine.soundEngine.gameoverSound.play()
+        }, 600)
+        for (let i = 0; i < 4; i++) {
+          new Scrap(this.gameEngine, {
+            initialPosition: this.position,
+            initialVelocity: new THREE.Vector3(
+              Math.random() * 20 - 10,
+              Math.random() * 20 - 10,
+              Math.random() * 20 - 10
+            ),
+            initialRotation: new THREE.Euler(
+              randomBetween(0, Math.PI * 2),
+              randomBetween(0, Math.PI * 2),
+              randomBetween(0, Math.PI * 2)
+            ),
+            initialRotationSpeed: new THREE.Euler(
+              randomBetween(-1e-2, 1e-2),
+              randomBetween(-1e-2, 1e-2),
+              randomBetween(-1e-2, 1e-2)
+            ),
+          })
+        }
+      } else {
+        this.glowingReloader.trigger()
+      }
     }
   }
 
@@ -155,18 +177,21 @@ class Ship extends Entity implements Moving, Collisionable, Damaging, Living, Gl
     if (this.gameEngine.controlsManager?.mouseControls.get(MouseButtons.MOUSE_LEFT)?.pressed) {
       if (this.fireReloader.canTrigger()) {
         this.fireReloader.trigger()
-        this.gameEngine.soundEngine.laserSound.play()
+
+        const copy = clonePositionalAudio(this.laserPosAudio)
+        this.add(copy)
+        setPositionalAudioOnEnded(copy, () => {
+          this.remove(copy)
+        })
+        copy.play()
 
         return [-1, 1].map((i) => {
-          const offset = 1.5
           return new Bullet(this.gameEngine, {
             damage: 2,
             initialVelocity: new THREE.Vector3(i * 2, 0, -30),
-            // TODO put rotation in Bullet update method
             initialPosition: this.position
               .clone()
               .add(new THREE.Vector3(i * 5, 0, -13).multiplyScalar(this.shipScale)),
-            initialRotation: new THREE.Euler(0, Math.tan(i * -offset * 0.02), 0),
           })
         })
       }
@@ -198,13 +223,21 @@ class Ship extends Entity implements Moving, Collisionable, Damaging, Living, Gl
     this.ship.material.emissive.setRGB(lerp(1, 0, this.glowingReloader.getPercent()), 0, 0)
 
     // Barrier update
-    if (this.gameEngine.controlsManager?.mouseControls.get(MouseButtons.MOUSE_RIGHT)?.pressed) {
-      this.barrier.material.opacity *= 0.005
-    } else {
+    this.isUsingBarrier =
+      this.gameEngine.controlsManager?.mouseControls.get(MouseButtons.MOUSE_RIGHT)?.pressed ?? false
+    if (this.isUsingBarrier) {
+      if (!this.barrierPosAudio.isPlaying) {
+        this.barrierPosAudio.play()
+      }
       this.barrier.material.opacity = Math.min(
         this.barrierMaxOpacity,
-        this.barrier.material.opacity + 0.01
+        this.barrier.material.opacity + 0.03
       )
+    } else {
+      if (this.barrierPosAudio.isPlaying) {
+        this.barrierPosAudio.stop()
+      }
+      this.barrier.material.opacity *= 0.55
     }
 
     this.gameEngine.additionalEntities.push(this.fireWeapons(updateOptions))
