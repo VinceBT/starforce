@@ -84,11 +84,11 @@ class GameEngine extends EventEmitter {
     hoversCanvas: false,
   }
 
-  constructor(domElement: HTMLDivElement) {
+  constructor(domElement: HTMLDivElement, soundEngine: SoundEngine) {
     super()
 
     this.domElement = domElement
-    this.soundEngine = new SoundEngine()
+    this.soundEngine = soundEngine
     this.scene = new THREE.Scene()
 
     // Camera

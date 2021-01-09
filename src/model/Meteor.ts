@@ -9,6 +9,7 @@ import { Collisionable, CollisionableEntity, CollisionBody } from './Collisionab
 import { PLANE_HALF } from './Constants'
 import { Glowing, Living } from './Damaging'
 import Entity, { EntityOptions, UpdateOptions } from './Entity'
+import { createPositionalAudioFactory, playPositionalAudioCopy } from './EntityUtils'
 import GameEngine from './GameEngine'
 import Reloader from './Reloader'
 import Scrap from './Scrap'
@@ -22,24 +23,17 @@ class Meteor extends Entity implements Collisionable, Living, Glowing {
   static meteorGeometry: THREE.Geometry
 
   private readonly meteorOptions
-
   private meteorMaterial: THREE.MeshLambertMaterial
-
   private velocity = new THREE.Vector3()
-
   private rotationSpeed = new THREE.Euler()
-
   public life: number
-
   public maxLife: number
-
   public damage: number = 1
 
   collisionBody: CollisionBody
-
   glowingReloader: Reloader = new Reloader(200, 200)
-
   invincibleDuringGlow: boolean = false
+  explosionPosAudio: THREE.PositionalAudio
 
   constructor(gameEngine: GameEngine, meteorOptions: MeteorOptions) {
     super(gameEngine)
@@ -73,6 +67,13 @@ class Meteor extends Entity implements Collisionable, Living, Glowing {
     if (meteorOptions.initialVelocity) this.velocity.copy(meteorOptions.initialVelocity)
     if (meteorOptions.rotationSpeed) this.rotationSpeed.copy(meteorOptions.rotationSpeed)
 
+    const positionalAudioFactory = createPositionalAudioFactory(
+      this,
+      this.gameEngine.camera.audioListener
+    )
+
+    this.explosionPosAudio = positionalAudioFactory(200, this.gameEngine.soundEngine.explosionSound)
+
     this.collisionBody = new CollisionBody(this, { mass: 1 })
     this.collisionBody.addShape(
       new CANNON.Sphere((Meteor.meteorGeometry?.boundingSphere?.radius ?? 1) * this.scale.x)
@@ -90,7 +91,7 @@ class Meteor extends Entity implements Collisionable, Living, Glowing {
     this.life -= damage
     if (this.life <= 0) {
       this.kill()
-      this.gameEngine.soundEngine.explosionSound.play()
+      playPositionalAudioCopy(this, this.explosionPosAudio)
       for (let i = 0; i < 4; i++) {
         new Scrap(this.gameEngine, {
           initialPosition: this.position,

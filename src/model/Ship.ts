@@ -6,13 +6,13 @@ import { Vector3 } from 'three'
 import JSONLoader from '../additional/JSONLoader'
 import { lerp } from '../utils/MathUtils'
 import { randomBetween } from '../utils/NumberUtils'
-import { clonePositionalAudio, setPositionalAudioOnEnded } from '../utils/ThreeUtils'
 import Bullet from './Bullet'
 import { Collisionable, CollisionableEntity, CollisionBody } from './Collisionable'
 import { PLANE_QUARTER } from './Constants'
 import { MouseButtons } from './ControlsManager'
 import { Damaging, Glowing, Living } from './Damaging'
 import Entity, { Moving, UpdateOptions } from './Entity'
+import { createPositionalAudioFactory, playPositionalAudioCopy } from './EntityUtils'
 import GameEngine, { GameEngineEvents } from './GameEngine'
 import Meteor from './Meteor'
 import ReactorTrail from './ReactorTrail'
@@ -59,21 +59,13 @@ class Ship extends Entity implements Moving, Collisionable, Damaging, Living, Gl
 
     this.scale.set(this.shipScale, this.shipScale, this.shipScale)
 
-    const audioLoader = new THREE.AudioLoader()
+    const positionalAudioFactory = createPositionalAudioFactory(
+      this,
+      this.gameEngine.camera.audioListener
+    )
 
-    this.laserPosAudio = new THREE.PositionalAudio(this.gameEngine.camera.audioListener)
-    this.laserPosAudio.setRefDistance(400)
-    audioLoader.load(require('../assets/sounds/laser.mp3').default, (buffer) => {
-      this.laserPosAudio.setBuffer(buffer)
-    })
-    this.add(this.laserPosAudio)
-
-    this.barrierPosAudio = new THREE.PositionalAudio(this.gameEngine.camera.audioListener)
-    this.barrierPosAudio.setRefDistance(200)
-    audioLoader.load(require('../assets/sounds/shield.mp3').default, (buffer) => {
-      this.barrierPosAudio.setBuffer(buffer)
-    })
-    this.add(this.barrierPosAudio)
+    this.laserPosAudio = positionalAudioFactory(400, this.gameEngine.soundEngine.laserSound)
+    this.barrierPosAudio = positionalAudioFactory(250, this.gameEngine.soundEngine.shieldSound)
 
     this.barrier = new THREE.Mesh(
       new THREE.SphereGeometry(15, 32, 32),
@@ -178,12 +170,7 @@ class Ship extends Entity implements Moving, Collisionable, Damaging, Living, Gl
       if (this.fireReloader.canTrigger()) {
         this.fireReloader.trigger()
 
-        const copy = clonePositionalAudio(this.laserPosAudio)
-        this.add(copy)
-        setPositionalAudioOnEnded(copy, () => {
-          this.remove(copy)
-        })
-        copy.play()
+        playPositionalAudioCopy(this, this.laserPosAudio)
 
         return [-1, 1].map((i) => {
           return new Bullet(this.gameEngine, {

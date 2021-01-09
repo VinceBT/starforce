@@ -42,6 +42,10 @@
       text-transform: uppercase;
     }
 
+    .separator {
+      height: 5rem;
+    }
+
     .sound {
       height: 6.4rem;
       width: 6.4rem;
@@ -73,6 +77,11 @@
       text-align: center;
       font-size: 3rem;
     }
+  }
+
+  .Loading-Container {
+    @extend .Screen;
+    background-color: rgba(0, 0, 0, 1);
   }
 
   .Menu-Container {
